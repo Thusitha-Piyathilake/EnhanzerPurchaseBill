@@ -1,0 +1,233 @@
+<div class="location-container">
+
+  <div class="page-header">
+
+    <div>
+
+      <h1>Location Details</h1>
+
+      <p>
+        Manage warehouse and branch locations
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- Add / Edit Form -->
+
+  <div class="form-card">
+
+    <h2>
+      {{ editingId === null
+        ? 'Add New Location'
+        : 'Edit Location' }}
+    </h2>
+
+
+    <div class="form-row">
+
+      <div class="form-group">
+
+        <label>
+          Location Code
+        </label>
+
+        <input
+          type="text"
+          [(ngModel)]="newLocation.locationCode"
+          placeholder="e.g. LOC003"
+        />
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>
+          Location Name
+        </label>
+
+        <input
+          type="text"
+          [(ngModel)]="newLocation.locationName"
+          placeholder="e.g. Kandy Branch"
+        />
+
+      </div>
+
+
+      <div class="button-group">
+
+        <!-- ADD -->
+
+        <button
+          *ngIf="editingId === null"
+          class="btn-primary"
+          (click)="addLocation()"
+          [disabled]="isSaving">
+
+          {{ isSaving
+            ? 'Adding...'
+            : 'Add Location' }}
+
+        </button>
+
+
+        <!-- UPDATE -->
+
+        <button
+          *ngIf="editingId !== null"
+          class="btn-primary"
+          (click)="updateLocation()"
+          [disabled]="isSaving">
+
+          {{ isSaving
+            ? 'Updating...'
+            : 'Update' }}
+
+        </button>
+
+
+        <!-- CANCEL -->
+
+        <button
+          *ngIf="editingId !== null"
+          class="btn-secondary"
+          (click)="cancelEdit()">
+
+          Cancel
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Location Table -->
+
+  <div class="table-card">
+
+    <div class="table-header">
+
+      <h2>
+        Locations
+      </h2>
+
+
+      <button
+        class="btn-refresh"
+        (click)="loadLocations()">
+
+        Refresh
+
+      </button>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>ID</th>
+
+            <th>
+              Location Code
+            </th>
+
+            <th>
+              Location Name
+            </th>
+
+            <th>
+              Actions
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let location of locations">
+
+            <td>
+              {{ location.id }}
+            </td>
+
+
+            <td>
+
+              <span class="location-code">
+
+                {{ location.locationCode }}
+
+              </span>
+
+            </td>
+
+
+            <td>
+
+              {{ location.locationName }}
+
+            </td>
+
+
+            <td class="actions">
+
+              <button
+                class="btn-edit"
+                (click)="editLocation(location)">
+
+                Edit
+
+              </button>
+
+
+              <button
+                class="btn-delete"
+                (click)="deleteLocation(location.id)">
+
+                Delete
+
+              </button>
+
+            </td>
+
+          </tr>
+
+
+          <tr
+            *ngIf="locations.length === 0">
+
+            <td
+              colspan="4"
+              class="empty">
+
+              No locations found.
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

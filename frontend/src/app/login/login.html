@@ -1,0 +1,77 @@
+<div class="login-page">
+
+  <div class="login-card">
+
+    <div class="login-header">
+
+      <h1>Purchase Bill System</h1>
+
+      <p>
+        Sign in to continue
+      </p>
+
+    </div>
+
+    <!-- Error Message -->
+    <div
+      class="error-message"
+      *ngIf="errorMessage">
+
+      {{ errorMessage }}
+
+    </div>
+
+    <!-- Login Form -->
+    <form (ngSubmit)="login()">
+
+      <!-- Email -->
+      <div class="form-group">
+
+        <label for="email">
+          Email
+        </label>
+
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="Enter your email"
+          autocomplete="username"
+        />
+
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+
+        <label for="password">
+          Password
+        </label>
+
+        <input
+          id="password"
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+        />
+
+      </div>
+
+      <!-- Login Button -->
+      <button
+        type="submit"
+        class="login-button"
+        [disabled]="isLoading">
+
+        {{ isLoading ? 'Signing in...' : 'Login' }}
+
+      </button>
+
+    </form>
+
+  </div>
+
+</div>

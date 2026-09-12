@@ -1,0 +1,388 @@
+<div class="purchase-bill-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+
+    <div>
+      <h1>Purchase Bill</h1>
+      <p>Add and manage purchase bill items</p>
+    </div>
+
+    <!-- Logout -->
+    <button
+      type="button"
+      class="btn btn-logout"
+      (click)="logout()">
+
+      Logout
+
+    </button>
+
+  </div>
+
+  <!-- Messages -->
+  <div
+    class="message error-message"
+    *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div
+    class="message success-message"
+    *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <!-- Purchase Bill Form -->
+  <div class="form-card">
+
+    <h2>Add Item</h2>
+
+    <div class="form-grid">
+
+      <!-- Item -->
+      <div class="form-group">
+
+        <label for="item">
+          Item
+        </label>
+
+        <input
+          id="item"
+          type="text"
+          list="itemList"
+          [(ngModel)]="selectedItem"
+          placeholder="Select or type an item"
+        />
+
+        <datalist id="itemList">
+
+          <option
+            *ngFor="let item of items"
+            [value]="item">
+          </option>
+
+        </datalist>
+
+      </div>
+
+      <!-- Batch -->
+      <div class="form-group">
+
+        <label for="batch">
+          Batch
+        </label>
+
+        <select
+          id="batch"
+          [(ngModel)]="selectedBatch">
+
+          <option value="">
+            Select Batch
+          </option>
+
+          <option
+            *ngFor="let location of locations"
+            [value]="location.locationName">
+
+            {{ location.locationName }}
+
+          </option>
+
+        </select>
+
+      </div>
+
+      <!-- Standard Cost -->
+      <div class="form-group">
+
+        <label for="standardCost">
+          Standard Cost
+        </label>
+
+        <input
+          id="standardCost"
+          type="number"
+          min="0"
+          [(ngModel)]="standardCost"
+          (ngModelChange)="calculateTotals()"
+          placeholder="Enter cost"
+        />
+
+      </div>
+
+      <!-- Standard Price -->
+      <div class="form-group">
+
+        <label for="standardPrice">
+          Standard Price
+        </label>
+
+        <input
+          id="standardPrice"
+          type="number"
+          min="0"
+          [(ngModel)]="standardPrice"
+          (ngModelChange)="calculateTotals()"
+          placeholder="Enter price"
+        />
+
+      </div>
+
+      <!-- Quantity -->
+      <div class="form-group">
+
+        <label for="quantity">
+          Quantity
+        </label>
+
+        <input
+          id="quantity"
+          type="number"
+          min="1"
+          [(ngModel)]="quantity"
+          (ngModelChange)="calculateTotals()"
+          placeholder="Enter quantity"
+        />
+
+      </div>
+
+      <!-- Discount -->
+      <div class="form-group">
+
+        <label for="discount">
+          Discount %
+        </label>
+
+        <input
+          id="discount"
+          type="number"
+          min="0"
+          max="100"
+          [(ngModel)]="discount"
+          (ngModelChange)="calculateTotals()"
+          placeholder="Enter discount"
+        />
+
+      </div>
+
+      <!-- Total Cost -->
+      <div class="form-group calculated-field">
+
+        <label>
+          Total Cost
+        </label>
+
+        <div class="calculated-value">
+          {{ totalCost | number:'1.2-2' }}
+        </div>
+
+      </div>
+
+      <!-- Total Selling -->
+      <div class="form-group calculated-field">
+
+        <label>
+          Total Selling
+        </label>
+
+        <div class="calculated-value">
+          {{ totalSelling | number:'1.2-2' }}
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="form-actions">
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="addItem()"
+        [disabled]="isAdding">
+
+        {{ isAdding ? 'Adding...' : 'Add Item' }}
+
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="clearForm()">
+
+        Clear
+
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Total Items
+      </span>
+
+      <strong>
+        {{ totalItems }}
+      </strong>
+
+    </div>
+
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Total Quantity
+      </span>
+
+      <strong>
+        {{ totalQuantity }}
+      </strong>
+
+    </div>
+
+  </div>
+
+  <!-- Purchase Bill Table -->
+  <div class="table-card">
+
+    <div class="table-header">
+
+      <div>
+
+        <h2>
+          Purchase Bill Items
+        </h2>
+
+        <p>
+          Items added to the purchase bill
+        </p>
+
+      </div>
+
+    </div>
+
+    <!-- Loading -->
+    <div
+      class="loading"
+      *ngIf="
+        isLoadingItems &&
+        purchaseBillItems.length === 0
+      ">
+
+      Loading...
+
+    </div>
+
+    <!-- Empty State -->
+    <div
+      class="empty-state"
+      *ngIf="
+        !isLoadingItems &&
+        purchaseBillItems.length === 0
+      ">
+
+      No purchase bill items added yet.
+
+    </div>
+
+    <!-- Table -->
+    <div
+      class="table-wrapper"
+      *ngIf="purchaseBillItems.length > 0">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>#</th>
+            <th>Item</th>
+            <th>Batch</th>
+            <th>Standard Cost</th>
+            <th>Standard Price</th>
+            <th>Quantity</th>
+            <th>Discount %</th>
+            <th>Total Cost</th>
+            <th>Total Selling</th>
+            <th>Action</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let purchaseItem of purchaseBillItems;
+              let i = index
+            ">
+
+            <td>
+              {{ i + 1 }}
+            </td>
+
+            <td>
+              {{ purchaseItem.item }}
+            </td>
+
+            <td>
+              {{ purchaseItem.batch }}
+            </td>
+
+            <td>
+              {{ purchaseItem.standardCost | number:'1.2-2' }}
+            </td>
+
+            <td>
+              {{ purchaseItem.standardPrice | number:'1.2-2' }}
+            </td>
+
+            <td>
+              {{ purchaseItem.quantity }}
+            </td>
+
+            <td>
+              {{ purchaseItem.discount | number:'1.2-2' }}%
+            </td>
+
+            <td>
+              {{ purchaseItem.totalCost | number:'1.2-2' }}
+            </td>
+
+            <td>
+              {{ purchaseItem.totalSelling | number:'1.2-2' }}
+            </td>
+
+            <td>
+
+              <button
+                type="button"
+                class="btn-delete"
+                (click)="deleteItem(purchaseItem.id)">
+
+                Delete
+
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
