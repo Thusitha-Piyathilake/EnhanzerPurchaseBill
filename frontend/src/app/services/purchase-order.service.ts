@@ -30,7 +30,7 @@ export class PurchaseOrderService {
     return this.http.post<PurchaseOrder>(
       this.apiUrl,
       {
-        itemIds
+        itemIds: itemIds
       }
     );
   }

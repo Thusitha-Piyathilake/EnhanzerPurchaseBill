@@ -1,0 +1,329 @@
+<div class="dashboard-page">
+
+  <!-- Header -->
+  <div class="dashboard-header">
+
+    <div>
+
+      <h1>
+        Welcome Dashboard
+      </h1>
+
+      <p>
+        Purchase Order overview and insights
+      </p>
+
+    </div>
+
+    <!-- Navigation -->
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="goToPurchaseBill()">
+
+      Purchase Bill
+
+    </button>
+
+  </div>
+
+  <!-- Error -->
+  <div
+    class="message error-message"
+    *ngIf="errorMessage">
+
+    {{ errorMessage }}
+
+  </div>
+
+
+  <!-- Dashboard Grid -->
+  <div class="dashboard-grid">
+
+
+    <!-- ===================================== -->
+    <!-- Latest 5 Orders -->
+    <!-- ===================================== -->
+
+    <section
+      class="dashboard-card latest-orders-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Latest 5 Purchase Orders
+          </h2>
+
+          <p>
+            Recently created purchase orders
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="loading"
+        *ngIf="isLoadingOrders">
+
+        Loading...
+
+      </div>
+
+
+      <div
+        class="empty-state"
+        *ngIf="
+          !isLoadingOrders &&
+          latestOrders.length === 0
+        ">
+
+        No purchase orders found.
+
+      </div>
+
+
+      <div
+        class="orders-list"
+        *ngIf="
+          !isLoadingOrders &&
+          latestOrders.length > 0
+        ">
+
+        <div
+          class="order-row"
+          *ngFor="let order of latestOrders">
+
+          <div class="order-info">
+
+            <strong>
+              PO #{{ order.id }}
+            </strong>
+
+            <span>
+              {{ order.createdAt | date:'medium' }}
+            </span>
+
+          </div>
+
+          <div class="order-details">
+
+            <span>
+
+              {{ order.noOfItems }}
+
+              {{ order.noOfItems === 1
+                ? 'Item'
+                : 'Items'
+              }}
+
+            </span>
+
+            <strong>
+
+              {{ order.netAmount | number:'1.2-2' }}
+
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================== -->
+    <!-- Donut Chart -->
+    <!-- ===================================== -->
+
+    <section
+      class="dashboard-card chart-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Quantity by Item
+          </h2>
+
+          <p>
+            Purchase quantity grouped by item
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="loading"
+        *ngIf="isLoadingChart">
+
+        Loading...
+
+      </div>
+
+
+      <div
+        class="empty-state"
+        *ngIf="
+          !isLoadingChart &&
+          itemQuantities.length === 0
+        ">
+
+        No purchase order data available.
+
+      </div>
+
+
+      <div
+        class="chart-container"
+        *ngIf="
+          !isLoadingChart &&
+          itemQuantities.length > 0
+        ">
+
+        <canvas
+          id="itemQuantityChart">
+        </canvas>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================== -->
+    <!-- Oldest 10 Items -->
+    <!-- ===================================== -->
+
+    <section
+      class="dashboard-card oldest-items-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Oldest 10 Items
+          </h2>
+
+          <p>
+            Items from the oldest purchase orders
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="loading"
+        *ngIf="isLoadingItems">
+
+        Loading...
+
+      </div>
+
+
+      <div
+        class="empty-state"
+        *ngIf="
+          !isLoadingItems &&
+          oldestItems.length === 0
+        ">
+
+        No purchase order items found.
+
+      </div>
+
+
+      <div
+        class="table-wrapper"
+        *ngIf="
+          !isLoadingItems &&
+          oldestItems.length > 0
+        ">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>#</th>
+
+              <th>
+                Item
+              </th>
+
+              <th>
+                Batch
+              </th>
+
+              <th>
+                Quantity
+              </th>
+
+              <th>
+                Total Cost
+              </th>
+
+              <th>
+                Purchase Order
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let item of oldestItems;
+                let i = index
+              ">
+
+              <td>
+                {{ i + 1 }}
+              </td>
+
+              <td>
+                {{ item.item }}
+              </td>
+
+              <td>
+                {{ item.batch }}
+              </td>
+
+              <td>
+                {{ item.quantity }}
+              </td>
+
+              <td>
+                {{ item.totalCost | number:'1.2-2' }}
+              </td>
+
+              <td>
+                PO #{{ item.purchaseOrderId }}
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>

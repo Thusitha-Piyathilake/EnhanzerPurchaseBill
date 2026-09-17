@@ -468,14 +468,21 @@ export class PurchaseBill implements OnInit {
   // Logout
   // ==========================================
 
-  logout(): void {
+  goToDashboard(): void {
 
-    this.authService.logout();
+  this.router.navigate([
+    '/dashboard'
+  ]);
+}
 
-    this.router.navigate([
-      '/login'
-    ]);
-  }
+logout(): void {
+
+  this.authService.logout();
+
+  this.router.navigate([
+    '/login'
+  ]);
+}
 
   // ==========================================
   // Summary

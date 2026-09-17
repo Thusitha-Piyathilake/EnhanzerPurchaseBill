@@ -66,9 +66,11 @@ public class PurchaseOrdersController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<PurchaseOrder>> CreatePurchaseOrder(
-        PurchaseOrderCreateRequest request)
+        [FromBody] PurchaseOrderCreateRequest request)
     {
-        if (request.ItemIds == null || request.ItemIds.Count == 0)
+        if (request == null ||
+            request.ItemIds == null ||
+            request.ItemIds.Count == 0)
         {
             return BadRequest(new
             {
@@ -108,34 +110,55 @@ public class PurchaseOrdersController : ControllerBase
         // Calculate the net amount from the item total costs
         var netAmount = items.Sum(x => x.TotalCost);
 
-        // Create the Purchase Order
-        var purchaseOrder = new PurchaseOrder
+        // Start database transaction
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
         {
-            NetAmount = netAmount,
-            CreatedAt = DateTime.Now
-        };
+            // Create the Purchase Order
+            var purchaseOrder = new PurchaseOrder
+            {
+                NetAmount = netAmount,
+                CreatedAt = DateTime.Now
+            };
 
-        _context.PurchaseOrders.Add(purchaseOrder);
+            _context.PurchaseOrders.Add(purchaseOrder);
 
-        // Save first so the Purchase Order gets its ID
-        await _context.SaveChangesAsync();
+            // Save first so the Purchase Order gets its ID
+            await _context.SaveChangesAsync();
 
-        // Attach the selected items to the new Purchase Order
-        foreach (var item in items)
-        {
-            item.PurchaseOrderId = purchaseOrder.Id;
+            // Attach the selected items to the new Purchase Order
+            foreach (var item in items)
+            {
+                item.PurchaseOrderId = purchaseOrder.Id;
+            }
+
+            // Save the item relationships
+            await _context.SaveChangesAsync();
+
+            // Commit the transaction
+            await transaction.CommitAsync();
+
+            // Load the items so they are included in the response
+            await _context.Entry(purchaseOrder)
+                .Collection(x => x.Items)
+                .LoadAsync();
+
+            return CreatedAtAction(
+                nameof(GetPurchaseOrder),
+                new { id = purchaseOrder.Id },
+                purchaseOrder);
         }
+        catch (Exception ex)
+        {
+            // Roll back if anything fails
+            await transaction.RollbackAsync();
 
-        await _context.SaveChangesAsync();
-
-        // Load the items so they are included in the response
-        await _context.Entry(purchaseOrder)
-            .Collection(x => x.Items)
-            .LoadAsync();
-
-        return CreatedAtAction(
-            nameof(GetPurchaseOrder),
-            new { id = purchaseOrder.Id },
-            purchaseOrder);
+            return StatusCode(500, new
+            {
+                message = "An error occurred while creating the Purchase Order.",
+                error = ex.Message
+            });
+        }
     }
 }

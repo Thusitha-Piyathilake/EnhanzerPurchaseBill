@@ -93,7 +93,7 @@ export class LoginComponent {
             this.isLoading = false;
 
             this.router.navigate([
-              '/purchase-bill'
+              '/dashboard'
             ]);
 
           },

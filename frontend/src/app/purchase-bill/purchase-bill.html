@@ -8,15 +8,30 @@
       <p>Add and manage purchase bill items</p>
     </div>
 
-    <!-- Logout -->
-    <button
-      type="button"
-      class="btn btn-logout"
-      (click)="logout()">
+    <!-- Header Actions -->
+    <div class="header-actions">
 
-      Logout
+      <!-- Dashboard -->
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="goToDashboard()">
 
-    </button>
+        Dashboard
+
+      </button>
+
+      <!-- Logout -->
+      <button
+        type="button"
+        class="btn btn-logout"
+        (click)="logout()">
+
+        Logout
+
+      </button>
+
+    </div>
 
   </div>
 
@@ -24,13 +39,17 @@
   <div
     class="message error-message"
     *ngIf="errorMessage">
+
     {{ errorMessage }}
+
   </div>
 
   <div
     class="message success-message"
     *ngIf="successMessage">
+
     {{ successMessage }}
+
   </div>
 
   <!-- Purchase Bill Form -->
@@ -174,7 +193,9 @@
         </label>
 
         <div class="calculated-value">
+
           {{ totalCost | number:'1.2-2' }}
+
         </div>
 
       </div>
@@ -187,7 +208,9 @@
         </label>
 
         <div class="calculated-value">
+
           {{ totalSelling | number:'1.2-2' }}
+
         </div>
 
       </div>
@@ -412,4 +435,4 @@
 
   </div>
 
-</div> 
+</div>
