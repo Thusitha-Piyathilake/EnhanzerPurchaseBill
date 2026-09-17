@@ -1,5 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -8,6 +12,7 @@ import { PurchaseBillItem } from '../models/purchase-bill-item';
 
 import { LocationDetailService } from '../services/location-detail.service';
 import { PurchaseBillItemService } from '../services/purchase-bill-item.service';
+import { PurchaseOrderService } from '../services/purchase-order.service';
 import { AuthService } from '../services/auth';
 
 @Component({
@@ -22,7 +27,7 @@ import { AuthService } from '../services/auth';
 })
 export class PurchaseBill implements OnInit {
 
-  // Available items required by the assignment
+  // Available items
   items = [
     'Mango',
     'Apple',
@@ -33,10 +38,10 @@ export class PurchaseBill implements OnInit {
     'Strawberry'
   ];
 
-  // Locations loaded from Location_Details table
+  // Locations loaded from SQL Server
   locations: LocationDetail[] = [];
 
-  // Items currently added to the purchase bill
+  // Items currently in the purchase bill
   purchaseBillItems: PurchaseBillItem[] = [];
 
   // Form values
@@ -56,14 +61,16 @@ export class PurchaseBill implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  // Separate loading states
+  // Loading states
   isLoadingLocations = false;
   isLoadingItems = false;
   isAdding = false;
+  isSavingOrder = false;
 
   constructor(
     private locationService: LocationDetailService,
     private purchaseBillService: PurchaseBillItemService,
+    private purchaseOrderService: PurchaseOrderService,
     private authService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -74,20 +81,31 @@ export class PurchaseBill implements OnInit {
     this.loadPurchaseBillItems();
   }
 
-  // Load batches/locations from SQL Server
+  // ==========================================
+  // Load Locations
+  // ==========================================
+
   loadLocations(): void {
+
     this.isLoadingLocations = true;
 
     this.locationService.getAll().subscribe({
+
       next: (data) => {
+
         this.locations = data;
 
         this.isLoadingLocations = false;
 
         this.cdr.detectChanges();
       },
+
       error: (error) => {
-        console.error('Error loading locations:', error);
+
+        console.error(
+          'Error loading locations:',
+          error
+        );
 
         this.errorMessage =
           'Unable to load batches. Please try again.';
@@ -99,20 +117,31 @@ export class PurchaseBill implements OnInit {
     });
   }
 
-  // Load existing purchase bill items
+  // ==========================================
+  // Load Purchase Bill Items
+  // ==========================================
+
   loadPurchaseBillItems(): void {
+
     this.isLoadingItems = true;
 
     this.purchaseBillService.getAll().subscribe({
+
       next: (data) => {
+
         this.purchaseBillItems = data;
 
         this.isLoadingItems = false;
 
         this.cdr.detectChanges();
       },
+
       error: (error) => {
-        console.error('Error loading purchase bill items:', error);
+
+        console.error(
+          'Error loading purchase bill items:',
+          error
+        );
 
         this.errorMessage =
           'Unable to load purchase bill items.';
@@ -124,35 +153,57 @@ export class PurchaseBill implements OnInit {
     });
   }
 
-  // Calculate totals whenever form values change
-  calculateTotals(): void {
-    const cost = this.standardCost ?? 0;
-    const price = this.standardPrice ?? 0;
-    const qty = this.quantity ?? 0;
-    const discountValue = this.discount ?? 0;
+  // ==========================================
+  // Calculate Totals
+  // ==========================================
 
-    const grossCost = cost * qty;
+  calculateTotals(): void {
+
+    const cost =
+      this.standardCost ?? 0;
+
+    const price =
+      this.standardPrice ?? 0;
+
+    const qty =
+      this.quantity ?? 0;
+
+    const discountValue =
+      this.discount ?? 0;
+
+    const grossCost =
+      cost * qty;
 
     this.totalCost =
-      grossCost - (grossCost * discountValue / 100);
+      grossCost -
+      (grossCost * discountValue / 100);
 
     this.totalSelling =
       price * qty;
   }
 
-  // Add the current item to the purchase bill
+  // ==========================================
+  // Add Item
+  // ==========================================
+
   addItem(): void {
+
     this.errorMessage = '';
     this.successMessage = '';
 
-    // Validation
     if (!this.selectedItem) {
-      this.errorMessage = 'Please select an item.';
+
+      this.errorMessage =
+        'Please select an item.';
+
       return;
     }
 
     if (!this.selectedBatch) {
-      this.errorMessage = 'Please select a batch.';
+
+      this.errorMessage =
+        'Please select a batch.';
+
       return;
     }
 
@@ -160,8 +211,10 @@ export class PurchaseBill implements OnInit {
       this.standardCost === null ||
       this.standardCost < 0
     ) {
+
       this.errorMessage =
         'Please enter a valid Standard Cost.';
+
       return;
     }
 
@@ -169,8 +222,10 @@ export class PurchaseBill implements OnInit {
       this.standardPrice === null ||
       this.standardPrice < 0
     ) {
+
       this.errorMessage =
         'Please enter a valid Standard Price.';
+
       return;
     }
 
@@ -178,8 +233,10 @@ export class PurchaseBill implements OnInit {
       this.quantity === null ||
       this.quantity <= 0
     ) {
+
       this.errorMessage =
         'Quantity must be greater than 0.';
+
       return;
     }
 
@@ -188,113 +245,268 @@ export class PurchaseBill implements OnInit {
       this.discount < 0 ||
       this.discount > 100
     ) {
+
       this.errorMessage =
         'Discount must be between 0 and 100.';
+
       return;
     }
 
-    // Make sure calculations are up to date
     this.calculateTotals();
 
     const newItem: PurchaseBillItem = {
+
       id: 0,
+
       item: this.selectedItem,
+
       batch: this.selectedBatch,
+
       standardCost: this.standardCost,
+
       standardPrice: this.standardPrice,
+
       quantity: this.quantity,
+
       discount: this.discount,
+
       totalCost: this.totalCost,
-      totalSelling: this.totalSelling
+
+      totalSelling: this.totalSelling,
+
+      purchaseOrderId: null
     };
 
     this.isAdding = true;
 
-    // Save item through ASP.NET Core API
-    this.purchaseBillService.create(newItem).subscribe({
-      next: (createdItem) => {
-        this.purchaseBillItems.push(createdItem);
+    this.purchaseBillService
+      .create(newItem)
+      .subscribe({
 
-        this.successMessage =
-          'Item added successfully.';
+        next: (createdItem) => {
 
-        this.clearForm();
+          this.purchaseBillItems.push(
+            createdItem
+          );
 
-        this.isAdding = false;
+          this.successMessage =
+            'Item added successfully.';
 
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error adding purchase bill item:', error);
+          this.clearForm();
 
-        this.errorMessage =
-          error?.error?.message ||
-          'Unable to add purchase bill item.';
+          this.isAdding = false;
 
-        this.isAdding = false;
+          this.cdr.detectChanges();
+        },
 
-        this.cdr.detectChanges();
-      }
-    });
+        error: (error) => {
+
+          console.error(
+            'Error adding purchase bill item:',
+            error
+          );
+
+          this.errorMessage =
+            error?.error?.message ||
+            'Unable to add purchase bill item.';
+
+          this.isAdding = false;
+
+          this.cdr.detectChanges();
+        }
+      });
   }
 
-  // Clear the form after adding an item
-  clearForm(): void {
-    this.selectedItem = '';
-    this.selectedBatch = '';
+  // ==========================================
+  // SAVE PURCHASE ORDER
+  // ==========================================
 
-    this.standardCost = null;
-    this.standardPrice = null;
-    this.quantity = null;
-    this.discount = 0;
+  savePurchaseOrder(): void {
 
-    this.totalCost = 0;
-    this.totalSelling = 0;
-  }
-
-  // Delete an item
-  deleteItem(id: number): void {
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.purchaseBillService.delete(id).subscribe({
-      next: () => {
-        this.purchaseBillItems =
-          this.purchaseBillItems.filter(item => item.id !== id);
+    // Only select items that are not already
+    // attached to a Purchase Order
+    const unsavedItems =
+      this.purchaseBillItems.filter(
+        item =>
+          item.purchaseOrderId === null ||
+          item.purchaseOrderId === undefined
+      );
 
-        this.successMessage =
-          'Item deleted successfully.';
+    if (unsavedItems.length === 0) {
 
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error deleting item:', error);
+      this.errorMessage =
+        'Please add at least one item before saving the Purchase Order.';
 
-        this.errorMessage =
-          error?.error?.message ||
-          'Unable to delete item.';
+      return;
+    }
 
-        this.cdr.detectChanges();
-      }
-    });
+    const itemIds =
+      unsavedItems.map(
+        item => item.id
+      );
+
+    this.isSavingOrder = true;
+
+    this.purchaseOrderService
+      .create(itemIds)
+      .subscribe({
+
+        next: (purchaseOrder) => {
+
+          // Update local items with the new
+          // Purchase Order ID
+          this.purchaseBillItems =
+            this.purchaseBillItems.map(item => {
+
+              if (itemIds.includes(item.id)) {
+
+                return {
+                  ...item,
+                  purchaseOrderId:
+                    purchaseOrder.id
+                };
+              }
+
+              return item;
+            });
+
+          this.successMessage =
+            `Purchase Order #${purchaseOrder.id} saved successfully.`;
+
+          this.isSavingOrder = false;
+
+          this.cdr.detectChanges();
+        },
+
+        error: (error) => {
+
+          console.error(
+            'Error saving Purchase Order:',
+            error
+          );
+
+          this.errorMessage =
+            error?.error?.message ||
+            'Unable to save Purchase Order.';
+
+          this.isSavingOrder = false;
+
+          this.cdr.detectChanges();
+        }
+      });
   }
 
-  // Logout the authenticated user
+  // ==========================================
+  // Clear Form
+  // ==========================================
+
+  clearForm(): void {
+
+    this.selectedItem = '';
+
+    this.selectedBatch = '';
+
+    this.standardCost = null;
+
+    this.standardPrice = null;
+
+    this.quantity = null;
+
+    this.discount = 0;
+
+    this.totalCost = 0;
+
+    this.totalSelling = 0;
+  }
+
+  // ==========================================
+  // Delete Item
+  // ==========================================
+
+  deleteItem(id: number): void {
+
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.purchaseBillService
+      .delete(id)
+      .subscribe({
+
+        next: () => {
+
+          this.purchaseBillItems =
+            this.purchaseBillItems.filter(
+              item => item.id !== id
+            );
+
+          this.successMessage =
+            'Item deleted successfully.';
+
+          this.cdr.detectChanges();
+        },
+
+        error: (error) => {
+
+          console.error(
+            'Error deleting item:',
+            error
+          );
+
+          this.errorMessage =
+            error?.error?.message ||
+            'Unable to delete item.';
+
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  // ==========================================
+  // Logout
+  // ==========================================
+
   logout(): void {
+
     this.authService.logout();
-    this.router.navigate(['/login']);
+
+    this.router.navigate([
+      '/login'
+    ]);
   }
 
-  // Total number of rows/items
+  // ==========================================
+  // Summary
+  // ==========================================
+
   get totalItems(): number {
+
     return this.purchaseBillItems.length;
   }
 
-  // Total quantity of all rows
   get totalQuantity(): number {
+
     return this.purchaseBillItems.reduce(
-      (total, item) => total + item.quantity,
+      (total, item) =>
+        total + item.quantity,
       0
     );
+  }
+
+  get totalOrderAmount(): number {
+
+    return this.purchaseBillItems
+      .filter(
+        item =>
+          item.purchaseOrderId === null ||
+          item.purchaseOrderId === undefined
+      )
+      .reduce(
+        (total, item) =>
+          total + item.totalCost,
+        0
+      );
   }
 }

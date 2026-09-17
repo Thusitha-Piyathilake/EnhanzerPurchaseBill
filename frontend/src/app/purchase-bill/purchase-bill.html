@@ -201,7 +201,7 @@
         type="button"
         class="btn btn-primary"
         (click)="addItem()"
-        [disabled]="isAdding">
+        [disabled]="isAdding || isSavingOrder">
 
         {{ isAdding ? 'Adding...' : 'Add Item' }}
 
@@ -210,9 +210,23 @@
       <button
         type="button"
         class="btn btn-secondary"
-        (click)="clearForm()">
+        (click)="clearForm()"
+        [disabled]="isAdding || isSavingOrder">
 
         Clear
+
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-success"
+        (click)="savePurchaseOrder()"
+        [disabled]="isSavingOrder || purchaseBillItems.length === 0">
+
+        {{ isSavingOrder
+          ? 'Saving Order...'
+          : 'Save Purchase Order'
+        }}
 
       </button>
 
@@ -243,6 +257,19 @@
 
       <strong>
         {{ totalQuantity }}
+      </strong>
+
+    </div>
+
+    <!-- Net Amount -->
+    <div class="summary-card">
+
+      <span class="summary-label">
+        Net Amount
+      </span>
+
+      <strong>
+        {{ totalOrderAmount | number:'1.2-2' }}
       </strong>
 
     </div>
@@ -385,4 +412,4 @@
 
   </div>
 
-</div>
+</div> 

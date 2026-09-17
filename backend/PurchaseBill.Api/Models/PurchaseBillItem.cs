@@ -19,4 +19,9 @@ public class PurchaseBillItem
     public decimal TotalCost { get; set; }
 
     public decimal TotalSelling { get; set; }
+
+    // Purchase Order relationship
+    public int? PurchaseOrderId { get; set; }
+
+    public PurchaseOrder? PurchaseOrder { get; set; }
 }

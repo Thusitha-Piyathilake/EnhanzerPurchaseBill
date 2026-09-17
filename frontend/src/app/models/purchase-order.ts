@@ -1,4 +1,11 @@
-export interface PurchaseBillItem {
+export interface PurchaseOrder {
+  id: number;
+  netAmount: number;
+  createdAt: string;
+  items: PurchaseOrderItem[];
+}
+
+export interface PurchaseOrderItem {
   id: number;
   item: string;
   batch: string;

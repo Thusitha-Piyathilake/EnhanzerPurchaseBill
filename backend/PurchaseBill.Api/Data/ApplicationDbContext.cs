@@ -11,13 +11,22 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<LocationDetail> LocationDetails => Set<LocationDetail>();
+    public DbSet<LocationDetail> LocationDetails
+        => Set<LocationDetail>();
 
-    public DbSet<PurchaseBillItem> PurchaseBillItems => Set<PurchaseBillItem>();
+    public DbSet<PurchaseBillItem> PurchaseBillItems
+        => Set<PurchaseBillItem>();
+
+    public DbSet<PurchaseOrder> PurchaseOrders
+        => Set<PurchaseOrder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // ==========================================
+        // Location Details
+        // ==========================================
 
         modelBuilder.Entity<LocationDetail>()
             .ToTable("Location_Details");
@@ -38,7 +47,10 @@ public class ApplicationDbContext : DbContext
             .IsRequired();
 
 
-        // Purchase Bill Item configuration
+        // ==========================================
+        // Purchase Bill Items
+        // ==========================================
+
         modelBuilder.Entity<PurchaseBillItem>()
             .ToTable("Purchase_Bill_Items");
 
@@ -74,5 +86,36 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<PurchaseBillItem>()
             .Property(x => x.TotalSelling)
             .HasColumnType("decimal(18,2)");
+
+
+        // ==========================================
+        // Purchase Orders
+        // ==========================================
+
+        modelBuilder.Entity<PurchaseOrder>()
+            .ToTable("Purchase_Orders");
+
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasKey(x => x.Id);
+
+        modelBuilder.Entity<PurchaseOrder>()
+            .Property(x => x.NetAmount)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<PurchaseOrder>()
+            .Property(x => x.CreatedAt)
+            .HasDefaultValueSql("GETDATE()");
+
+
+        // ==========================================
+        // Purchase Order -> Purchase Bill Items
+        // One Purchase Order has many Items
+        // ==========================================
+
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasMany(x => x.Items)
+            .WithOne(x => x.PurchaseOrder)
+            .HasForeignKey(x => x.PurchaseOrderId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
